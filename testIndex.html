@@ -1,0 +1,195 @@
+<html>
+<head>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="http://code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+
+<style>
+
+
+div.addNewRow{
+	position:absolute;
+	bottom:0px;
+	right:-5px;
+	width:20px;
+	height:20px;	
+	background:url(http://laynestaley.co.uk/Content/Blog/icon_plus_small.gif) no-repeat center;
+}
+
+div.listContain, div.objContain{
+   float:left;
+   position:relative;
+}
+
+
+
+table {
+    border-bottom: 7px solid #9BAFF1;
+    border-collapse: collapse;
+    border-top: 7px solid #9BAFF1;
+    font-family: "Lucida Sans Unicode","Lucida Grande",Sans-Serif;
+    font-size: 12px;
+    text-align: center;
+    margin:0px  0px  5px 0px;
+}
+table th {
+    background: none repeat scroll 0 0 #E8EDFF;
+    border-left: 1px solid #9BAFF1;
+    border-right: 1px solid #9BAFF1;
+    color: #003399;
+    font-size: 13px;
+    font-weight: normal;
+    padding: 8px;
+}
+table td {
+    background: none repeat scroll 0 0 #E8EDFF;
+    border-bottom: 1px solid #FFFFFF;
+    border-left: 1px solid #AABCFE;
+    border-right: 1px solid #AABCFE;
+    color: #666699;
+    padding: 8px;
+}	
+table tr:hover td {
+    background: none repeat scroll 0 0 #D0DAFD;
+    color: #333399;
+}
+
+</style>
+</head>
+<body>
+
+    <div id="a"></div>
+    
+    <script>
+    var doc = document;
+    function create(tag){
+    	return doc.createElement(tag);
+    }
+
+    function set(obj,keySet, val){
+    	if(!keySet || keySet.length==0){
+    		return;
+    	}
+    	if($.isArray(keySet)){
+	    	c=0;
+	    	while(c < keySet.length-1 ){
+	    		obj = obj[keySet[c]];
+	    		c++;
+	    	}
+	    	obj[keySet[c]]= val;
+    	}
+    	else{
+    		obj[keySet] = val;
+    	}
+    }
+    
+    function get(obj,keySet, val){
+    	if(!keySet || keySet.length==0){
+    		return obj;
+    	}
+    	if($.isArray(keySet)){
+	    	c=0;
+	    	while(c < keySet.length-1 ){
+	    		obj = obj[keySet[c]];
+	    		c++;
+	    	}
+	    	return obj[keySet[c]];
+    	}
+    	else{
+    		return obj[keySet];
+    	}
+    }
+	function addObjCui(elem , parentObj, keySet){
+		var obj = get(parentObj,keySet);
+		
+		if($.isPlainObject(obj)){
+			var table = $('<table><tbody></tbody></table>');
+			table[0].parentObj = parentObj
+			table[0].keySet = keySet;
+			var _table = table[0];
+			var div= $("<div>").addClass("objContain");
+				div.append(table).append(
+					$("<div>")
+						.addClass("del")
+						.click(function(){ deleteElement(div); parentObj[key]=obj; addObjCui(elem,obj,parentObj,key);  })
+					);//.append(
+				//	$("<div>").addClass("addNewRow").click(function(){addTableRow(table,"stringInput","stringInput");})
+				//);
+			elem.append(div);	
+			for (var i in obj){
+				 var tr = $('<tr>').appendTo(table);
+	    			tr.append($('<td>').append(i));//key
+	           		var tempElem = $('<td>');
+	    			tr.append(tempElem);//value
+	    			addObjCui(tempElem,parentObj,keySet.concat([i]));
+		    	 }
+			}
+		if($.type( obj )==="array"){
+			var v = obj.length ? obj[0] : "string";
+			var table = $('<table><tbody></tbody></table>');
+			table[0].parentObj = parentObj;
+			table[0].keySet = keySet;
+			
+			var addRow = function (v,keySet2){
+				return function(){
+				 var tr = $('<tr>').appendTo(table);
+	    			var tempElem = $('<td>');
+	    			tr.append(tempElem);//value
+	    			obj.push(JSON.parse(JSON.stringify(v)));
+	    			var index = obj.length-1;
+	    			addObjCui(tempElem,parentObj,keySet2.concat(index));
+				};
+			};
+			
+			var div= $("<div>").addClass("listContain").append(table).append(
+				   $("<div>").addClass("addNewRow").click(addRow(JSON.parse(JSON.stringify(v)),keySet.slice(0)))
+			).appendTo(elem);
+		
+			for(var i =0;i<obj.length;i++){
+				
+				var tr = $('<tr>').appendTo(table);
+    			var tempElem = $('<td>');
+    			tr.append(tempElem);//value
+    			addObjCui(tempElem,parentObj,keySet.concat(i));
+			}
+		}
+		
+		if($.type( obj ) === "string"){			
+			/*
+				stringInput
+				textInput
+				numberInput
+				boolean
+				selectObjCreator
+				radioInputCreator
+				url
+			*/
+			if(obj=="stringInput"){
+				$("<div>").appendTo(elem).append("StringInput");
+			}
+			
+			else
+				$("<div>").appendTo(elem).append(obj).click(function(e){
+					var p = prompt("Please enter text", obj);
+					$(this).html(p ? p : 'null');
+					set(parentObj , keySet, p);
+				});
+		}
+	}
+	var obj = {"name":"asdasd",
+			'userTextInput': [["string","string","string"]]
+			  }
+		
+	$(document).ready(function(){
+		addObjCui( $("#a"),obj,[]);
+	});
+	</script>
+
+
+<div id="log_json">
+
+</div>
+<button onclick="$('#log_json').html(JSON.stringify(obj));">Json Log</button>
+</body>
+
+</html>
