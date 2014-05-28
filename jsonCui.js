@@ -8,14 +8,14 @@ function jsonCui(obj,headersObj,div,$){
 	this.headersObj = headersObj;
 	this.div = div;
 	this.hooks = {};
-    
+    this.excluded={};
     var doc = document;
     function create(tag){
     	return doc.createElement(tag);
     };
 
-    this.set = function(keySet, val){
-    	var obj = this.obj;
+    this.set = function(keySet, val , obj){
+    	var obj = obj==null? this.obj:obj;
     	if(!keySet || keySet.length==0){
     		return;
     	}
@@ -78,7 +78,15 @@ function jsonCui(obj,headersObj,div,$){
     	}
     	return this.get(keySet,this.hooks);
     };
-    
+    this.setExcluded = function(keySet){
+    	this.set(keySet, true, this.excluded)
+    }
+    this.isExcluded = function(keySet){
+    	if(this.get(keySet, obj)){
+    		return true;
+    	}
+    	return false;
+    }
     this.createCui = function(objClass,listClass){
 
     	this.objClass= $.isArray(objClass)?objClass:[];
@@ -93,7 +101,7 @@ function jsonCui(obj,headersObj,div,$){
 		var obj = this.get(keySet);
 		var hook = this.getHook(keySet);
 		if(hook){
-			this.getHook(keySet)(elem);
+			this.getHook(keySet)(elem,obj );
 			return;
 		}
 			
@@ -120,7 +128,10 @@ function jsonCui(obj,headersObj,div,$){
 	    			tr.append($('<td>').append(i));//key
 	           		var tempElem = $('<td>');
 	    			tr.append(tempElem);//value
-	    			this.addObjCui(tempElem,keySet.concat([i]));
+	    			var newKeySet = keySet.concat([i]);
+	    			if(this.isExcluded(newKeySet)){
+	    				this.addObjCui(tempElem,newKeySet);
+	    			}
 		    	 }
 		}
 		if($.type( obj )==="array"){
